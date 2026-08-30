@@ -33,9 +33,6 @@ if ! which makepkg > /dev/null; then
     source PSPBUILD
     export pkgdir="${PWD}/temp_build/psp-pacman"
     mkdir -p "${pkgdir}"
-    rm -rf pacman-v${pkgver}
-    wget -nc ${source[0]}
-    tar -xvf pacman-v${pkgver}.tar.gz
     prepare
     cd "$WORKDIR"
     build

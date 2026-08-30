@@ -1,0 +1,9 @@
+--- a/meson.build
++++ b/meson.build
+@@ -406,7 +406,7 @@ foreach path : [
+        join_paths(DATAROOTDIR, 'makepkg-template/'),
+        join_paths(DATAROOTDIR, 'libalpm/hooks/'),
+        ]
+-       meson.add_install_script('sh', '-c', 'mkdir -p "$DESTDIR/@0@"'.format(path))
++       meson.add_install_script('sh', '-c', 'mkdir -p "$DESTDIR@0@"'.format(path))
+ endforeach
