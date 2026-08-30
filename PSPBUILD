@@ -2,6 +2,8 @@ pkgname=psp-pacman
 pkgver=7.1.0
 pkgrel=2
 pkgdesc="The package manager for the PSPDEV SDK."
+_REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_PACMAN_SOURCE="${_REPO_ROOT}/components/pacman"
 arch=(
   "alpine_x86_64"
   "ubuntu_x86_64"
@@ -11,7 +13,7 @@ arch=(
   "macos_x86_64"
   "macos_arm64"
 )
-url="https://github.com/pspdev/psp-pacman"
+url="https://github.com/StochasticEagle/psp-pacman"
 license=('GPL-2.0-only')
 groups=()
 depends=()
@@ -19,18 +21,18 @@ makedepends=()
 optdepends=()
 provides=()
 source=(
-  "https://gitlab.archlinux.org/pacman/pacman/-/archive/v${pkgver}/pacman-v${pkgver}.tar.gz"
   "makepkg.conf"
   "pacman.conf"
   "pacman-${pkgver}-psp-strip.patch"
   "pacman-${pkgver}-rootless.patch"
   "pacman-${pkgver}-add-asroot-option.patch"
+  "pacman-${pkgver}-msys2-destdir.patch"
   "get-arch"
   "psp-makepkg"
   "psp-pacman"
 )
 sha256sums=(
-  "1090f680958a73dc1f443a1eb919bd2ad77b3caff38e92e9737dec100c647bc9"
+  "SKIP"
   "SKIP"
   "SKIP"
   "SKIP"
@@ -42,19 +44,40 @@ sha256sums=(
 )
 
 prepare() {
+  if [ ! -f "${_PACMAN_SOURCE}/meson.build" ]; then
+    echo "ERROR: Pacman source submodule is not initialized."
+    return 1
+  fi
+
+  rm -rf "pacman-v${pkgver}"
+  mkdir -p "pacman-v${pkgver}"
+
+  cp -a "${_PACMAN_SOURCE}/." "pacman-v${pkgver}/"
+
+  # Never modify submodule metadata in the build copy.
+  rm -rf "pacman-v${pkgver}/.git"
+
   cd "pacman-v${pkgver}"
 
-  # Apply patches
   patch -p1 < "../pacman-${pkgver}-psp-strip.patch"
   patch -p1 < "../pacman-${pkgver}-rootless.patch"
   patch -p1 < "../pacman-${pkgver}-add-asroot-option.patch"
+  patch -p1 < "../pacman-${pkgver}-msys2-destdir.patch"
 
-  ## Fix some lines in the scripts which have hardcoded paths
-  find ./ -type f -name "*.in" -exec sed -i -e "s#LIBRARY=\${LIBRARY:-'@libmakepkgdir@'}#LIBRARY=\${LIBRARY:-\"\${PSPDEV}/share/makepkg\"}#g" {} \;
-  find ./ -type f -name "*.in" -exec sed -i -e "s#declare -r confdir='@sysconfdir@'#declare -r confdir=\"\${PSPDEV}/etc\"#g" {} \;
-  find ./ -type f -name "*.in" -exec sed -i -e "s#export TEXTDOMAINDIR='@localedir@'#export TEXTDOMAINDIR=\"\${PSPDEV}/share/locale\"#g" {} \;
-  find ./ -type f -name "*.in" -exec sed -i -e "s#'@libmakepkgdir@'#\${PSPDEV}/share/makepkg#g" {} \;
-  find ./ -type f -name "*.in" -exec sed -i -e "s#@libmakepkgdir@#\${PSPDEV}/share/makepkg#g" {} \;
+  find ./ -type f -name "*.in" -exec sed -i -e \
+    "s#LIBRARY=\${LIBRARY:-'@libmakepkgdir@'}#LIBRARY=\${LIBRARY:-\"\${PSPDEV}/share/makepkg\"}#g" {} \;
+
+  find ./ -type f -name "*.in" -exec sed -i -e \
+    "s#declare -r confdir='@sysconfdir@'#declare -r confdir=\"\${PSPDEV}/etc\"#g" {} \;
+
+  find ./ -type f -name "*.in" -exec sed -i -e \
+    "s#export TEXTDOMAINDIR='@localedir@'#export TEXTDOMAINDIR=\"\${PSPDEV}/share/locale\"#g" {} \;
+
+  find ./ -type f -name "*.in" -exec sed -i -e \
+    "s#'@libmakepkgdir@'#\${PSPDEV}/share/makepkg#g" {} \;
+
+  find ./ -type f -name "*.in" -exec sed -i -e \
+    "s#@libmakepkgdir@#\${PSPDEV}/share/makepkg#g" {} \;
 }
 
 build() {
