@@ -25,7 +25,7 @@ if [ "$(uname -s)" == "Darwin" ]; then
 fi
 
 ## Clean up from previous builds
-rm -rf temp_build pkg src psp-pacman-*-*.pkg.tar.gz
+rm -rf temp_build pkg src psp-pacman-*.pkg.tar.*
 
 ## Install makepkg from source if it isn't already available and build the package
 if ! which makepkg > /dev/null; then
@@ -64,4 +64,4 @@ export LD_LIBRARY_PATH="${PWD}/pkg/psp-pacman/lib:${LD_LIBRARY_PATH}"
     --config "pacman.conf" \
     --arch "$(./get-arch)" \
     --noconfirm \
-    -U psp-pacman-*-*.pkg.tar.gz
+    -U psp-pacman-*.pkg.tar.*
