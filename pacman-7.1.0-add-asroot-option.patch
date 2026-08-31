@@ -78,31 +78,6 @@ index da69df8b..cf09bac9 100644
  		error "$(gettext "Running %s as root is not allowed as it can cause permanent,\n\
  catastrophic damage to your system.")" "makepkg"
  		exit $E_ROOT
-@@ -1243,23 +1266,7 @@ fi
- 
- # Run the bare minimum in fakeroot
- if (( INFAKEROOT )); then
--	if (( SOURCEONLY )); then
--		create_srcpackage
--		msg "$(gettext "Leaving %s environment.")" "fakeroot"
--		exit $E_OK
--	fi
--
--	prepare_buildenv
--
--	chmod 755 "$pkgdirbase"
--	if (( ! SPLITPKG )); then
--		run_single_packaging
--	else
--		run_split_packaging
--	fi
--
--	create_debug_package
--
-+	build_package
- 	msg "$(gettext "Leaving %s environment.")" "fakeroot"
- 	exit $E_OK
- fi
 @@ -1303,7 +1310,11 @@ if (( SOURCEONLY )); then
  	check_source_integrity all
  	cd_safe "$startdir"
