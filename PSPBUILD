@@ -10,6 +10,7 @@ arch=(
   "ubuntu_aarch64"
   "debian_x86_64"
   "fedora_x86_64"
+  "linux_x86_64"
   "macos_x86_64"
   "macos_arm64"
 )
