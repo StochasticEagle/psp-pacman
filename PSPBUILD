@@ -27,13 +27,11 @@ source=(
   "pacman-${pkgver}-psp-strip.patch"
   "pacman-${pkgver}-rootless.patch"
   "pacman-${pkgver}-add-asroot-option.patch"
-  "pacman-${pkgver}-msys2-destdir.patch"
   "get-arch"
   "psp-makepkg"
   "psp-pacman"
 )
 sha256sums=(
-  "SKIP"
   "SKIP"
   "SKIP"
   "SKIP"
@@ -63,7 +61,6 @@ prepare() {
   patch -p1 < "../pacman-${pkgver}-psp-strip.patch"
   patch -p1 < "../pacman-${pkgver}-rootless.patch"
   patch -p1 < "../pacman-${pkgver}-add-asroot-option.patch"
-  patch -p1 < "../pacman-${pkgver}-msys2-destdir.patch"
 
   find ./ -type f -name "*.in" -exec sed -i -e \
     "s#LIBRARY=\${LIBRARY:-'@libmakepkgdir@'}#LIBRARY=\${LIBRARY:-\"\${PSPDEV}/share/makepkg\"}#g" {} \;
