@@ -2,3 +2,4 @@
 	path = components/pacman
 	url = https://gitlab.archlinux.org/pacman/pacman.git
 	shallow = true
+	branch = master
