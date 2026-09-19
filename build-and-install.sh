@@ -4,6 +4,10 @@
 # Exit on errors
 set -e
 
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${ROOT}/install-permissions.sh"
+pspdev_require_unprivileged_build
+
 ## Remove $CC and $CXX for configure
 unset CC
 unset CXX
@@ -40,17 +44,13 @@ if ! which makepkg > /dev/null; then
     package
     cd "$WORKDIR"
     export PATH="${pkgdir}/share/pacman/bin:${PATH}"
-    if (( EUID == 0 )); then
-        CARCH="$(./get-arch)" PSPDEV="${pkgdir}" makepkg -p PSPBUILD --asroot .
-    else
-        CARCH="$(./get-arch)" PSPDEV="${pkgdir}" makepkg -p PSPBUILD .
-    fi
+    CARCH="$(./get-arch)" PSPDEV="${pkgdir}" makepkg -p PSPBUILD .
 else
     CARCH="$(./get-arch)" makepkg -p PSPBUILD .
 fi
 
 ## Create the required directories for installation
-mkdir -m 755 -p "${PSPDEV}/var/lib/pacman"
+pspdev_run_install mkdir -m 755 -p "${PSPDEV}/var/lib/pacman"
 
 ## Add the directory with pacman's binaries to the start of the PATH
 export PATH="${PWD}/pkg/psp-pacman/share/pacman/bin:${PATH}"
@@ -58,7 +58,7 @@ export PATH="${PWD}/pkg/psp-pacman/share/pacman/bin:${PATH}"
 export LD_LIBRARY_PATH="${PWD}/pkg/psp-pacman/lib:${LD_LIBRARY_PATH}"
 
 ## The package in $PSPDEV using the pacman that was build
-./pkg/psp-pacman/share/pacman/bin/pacman  \
+pspdev_run_install ./pkg/psp-pacman/share/pacman/bin/pacman \
     --root "${PSPDEV}" \
     --dbpath "${PSPDEV}/var/lib/pacman" \
     --config "pacman.conf" \
