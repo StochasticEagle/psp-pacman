@@ -24,7 +24,7 @@ index da69df8b..cf09bac9 100644
  
  MAKEPKG_LINT_PKGBUILD=${MAKEPKG_LINT_PKGBUILD:-1}
  
-@@ -879,6 +880,27 @@ run_split_packaging() {
+@@ -883,6 +884,27 @@ run_split_packaging() {
  	pkgname=("${pkgname_backup[@]}")
  }
  
@@ -52,7 +52,7 @@ index da69df8b..cf09bac9 100644
  usage() {
  	printf "makepkg (pacman) %s\n" "$makepkg_version"
  	echo
-@@ -967,7 +989,7 @@ OPT_LONG=('allsource' 'check' 'clean' 'cleanbuild' 'config:' 'dir:' 'force' 'gen
+@@ -971,7 +993,7 @@ OPT_LONG=('allsource' 'check' 'clean' 'cleanbuild' 'config:' 'dir:' 'force' 'gen
            'skippgpcheck' 'source' 'syncdeps' 'verifysource' 'version')
  
  # Pacman Options
@@ -61,7 +61,7 @@ index da69df8b..cf09bac9 100644
  
  if ! parseopts "$OPT_SHORT" "${OPT_LONG[@]}" -- "$@"; then
  	exit $E_INVALID_OPTION
-@@ -980,6 +1002,7 @@ while true; do
+@@ -984,6 +1006,7 @@ while true; do
  		# Pacman Options
  		--asdeps)         ASDEPS=1;;
  		--needed)         NEEDED=1;;
@@ -69,7 +69,7 @@ index da69df8b..cf09bac9 100644
  		--noconfirm)      PACMAN_OPTS+=("--noconfirm") ;;
  		--noprogressbar)  PACMAN_OPTS+=("--noprogressbar") ;;
  
-@@ -1117,7 +1140,7 @@ if (( LOGGING )) && ! ensure_writable_dir "LOGDEST" "$LOGDEST"; then
+@@ -1121,7 +1144,7 @@ if (( LOGGING )) && ! ensure_writable_dir "LOGDEST" "$LOGDEST"; then
  fi
  
  if (( ! INFAKEROOT )); then
@@ -78,7 +78,7 @@ index da69df8b..cf09bac9 100644
  		error "$(gettext "Running %s as root is not allowed as it can cause permanent,\n\
  catastrophic damage to your system.")" "makepkg"
  		exit $E_ROOT
-@@ -1303,7 +1310,11 @@ if (( SOURCEONLY )); then
+@@ -1307,7 +1314,11 @@ if (( SOURCEONLY )); then
  	check_source_integrity all
  	cd_safe "$startdir"
  
@@ -91,7 +91,7 @@ index da69df8b..cf09bac9 100644
  
  	if [[ $SIGNPKG = 'y' ]]; then
  		msg "$(gettext "Signing package...")"
-@@ -1409,7 +1420,11 @@ else
+@@ -1413,7 +1424,11 @@ else
  		cd_safe "$startdir"
  	fi
  
