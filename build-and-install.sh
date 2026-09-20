@@ -21,6 +21,11 @@ fi
 cd "$(dirname "$0")"
 WORKDIR="${PWD}"
 
+# Load the package identity once so build output selection is exact. This does
+# not execute prepare/build/package; it only defines the PSPBUILD metadata and
+# functions in this shell.
+source PSPBUILD
+
 ## MacOS specific environment variables
 if [ "$(uname -s)" == "Darwin" ]; then
     export PATH="$(brew --prefix gnu-sed)/libexec/gnubin:$(brew --prefix bash)/bin:$PATH"
@@ -31,9 +36,12 @@ fi
 ## Use ./clean.sh when a fresh build is required.
 
 ## Install makepkg from source if it isn't already available and build the package
+# Remove only a stale archive for the package revision being rebuilt. Older
+# revisions may remain in the checkout, but must never be passed to pacman.
+rm -f "${pkgname}-${pkgver}-${pkgrel}-"*.pkg.tar.*
+
 if ! which makepkg > /dev/null; then
     echo "Did not find makepkg, downloading and building pacman from source"
-    source PSPBUILD
     export pkgdir="${PWD}/temp_build/psp-pacman"
     mkdir -p "${pkgdir}"
     prepare
@@ -52,6 +60,18 @@ else
     CARCH="$(./get-arch)" makepkg "${makepkg_args[@]}"
 fi
 
+shopt -s nullglob
+package_candidates=("${WORKDIR}/${pkgname}-${pkgver}-${pkgrel}-"*.pkg.tar.*)
+shopt -u nullglob
+
+if (( ${#package_candidates[@]} != 1 )); then
+    echo "ERROR: Expected exactly one package for ${pkgname} ${pkgver}-${pkgrel}, found ${#package_candidates[@]}:" >&2
+    printf '  %s\n' "${package_candidates[@]}" >&2
+    exit 1
+fi
+
+package_file="${package_candidates[0]}"
+
 ## Create the required directories for installation
 pspdev_run_install mkdir -m 755 -p "${PSPDEV}/var/lib/pacman"
 
@@ -67,4 +87,4 @@ pspdev_run_install ./pkg/psp-pacman/share/pacman/bin/pacman \
     --config "pacman.conf" \
     --arch "$(./get-arch)" \
     --noconfirm \
-    -U psp-pacman-*.pkg.tar.*
+    -U "${package_file}"
