@@ -28,5 +28,18 @@ export PKG_CONFIG_LIBDIR="${PSPDEV}/psp/lib/pkgconfig:${PSPDEV}/psp/share/pkgcon
 ## Add the directory with pacman's binaries to the start of the PATH
 export PATH="${PSPDEV}/share/pacman/bin:${PATH}"
 
+## Configure host pkg-config for PSP cross compilation.
+## Target .pc files describe the PSP filesystem rooted at /psp; pkg-config
+## maps those target paths into the installed PSPDEV sysroot for the build.
+if ! command -v pkg-config >/dev/null 2>&1; then
+    echo "pkg-config is required to build PSP packages"
+    exit 3
+fi
+export PKG_CONFIG="$(command -v pkg-config)"
+export PKG_CONFIG_DIR=
+export PKG_CONFIG_PATH=
+export PKG_CONFIG_LIBDIR="${PSPDEV}/psp/lib/pkgconfig:${PSPDEV}/psp/share/pkgconfig"
+export PKG_CONFIG_SYSROOT_DIR="${PSPDEV}"
+
 ## Run makepkg
 makepkg "$@"
