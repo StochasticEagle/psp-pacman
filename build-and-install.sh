@@ -27,8 +27,8 @@ if [ "$(uname -s)" == "Darwin" ]; then
     export PKG_CONFIG_PATH="$(brew --prefix libarchive)/lib/pkgconfig"
 fi
 
-## Clean up from previous builds
-rm -rf temp_build pkg src psp-pacman-*.pkg.tar.*
+## Preserve prior source/build state for incremental rebuilds.
+## Use ./clean.sh when a fresh build is required.
 
 ## Install makepkg from source if it isn't already available and build the package
 if ! which makepkg > /dev/null; then
@@ -45,7 +45,11 @@ if ! which makepkg > /dev/null; then
     export PATH="${pkgdir}/share/pacman/bin:${PATH}"
     CARCH="$(./get-arch)" PSPDEV="${pkgdir}" makepkg -p PSPBUILD .
 else
-    CARCH="$(./get-arch)" makepkg -p PSPBUILD .
+    makepkg_args=(-f -p PSPBUILD .)
+    if compgen -G "src/pacman-v*/build/build.ninja" > /dev/null; then
+        makepkg_args=(--noextract "${makepkg_args[@]}")
+    fi
+    CARCH="$(./get-arch)" makepkg "${makepkg_args[@]}"
 fi
 
 ## Create the required directories for installation

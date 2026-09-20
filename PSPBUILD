@@ -82,12 +82,28 @@ prepare() {
 build() {
   cd "pacman-v${pkgver}"
 
-  meson build -Dprefix="${pkgdir}" --buildtype=release \
-    -Ddefault_library=static  -Dbuildscript=PSPBUILD \
-    -Droot-dir="${pkgdir}" -Dsysconfdir="etc" -Dmakepkg-template-dir="share/makepkg-template" -Dbindir="share/pacman/bin" -Dlocalstatedir="var" \
-    -Ddoc=disabled -Di18n=false -Dbash-completions-dir="share/bash-completion/completions"
-  cd build
-  ninja
+  meson_args=(
+    -Dprefix="${pkgdir}"
+    --buildtype=release
+    -Ddefault_library=static
+    -Dbuildscript=PSPBUILD
+    -Droot-dir="${pkgdir}"
+    -Dsysconfdir="etc"
+    -Dmakepkg-template-dir="share/makepkg-template"
+    -Dbindir="share/pacman/bin"
+    -Dlocalstatedir="var"
+    -Ddoc=disabled
+    -Di18n=false
+    -Dbash-completions-dir="share/bash-completion/completions"
+  )
+
+  if [[ -f build/build.ninja ]]; then
+    meson setup build --reconfigure "${meson_args[@]}"
+  else
+    meson setup build "${meson_args[@]}"
+  fi
+
+  ninja -C build
 }
 
 package() {
