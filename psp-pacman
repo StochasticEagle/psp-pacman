@@ -11,17 +11,20 @@ if [ ! -d "${PSPDEV}" ]; then
     exit 2
 fi
 
-## Use sudo if the current user doesn't own $PSPDEV
-if ! touch "${PSPDEV}" >/dev/null 2>&1; then
-    sudo PSPDEV="${PSPDEV}" "$0" "$@"
-    exit $?
+## Use the shared permission model for PSPDEV installation operations.
+PERMISSIONS_HELPER="${PSPDEV}/share/psp-pacman/install-permissions.sh"
+if [ ! -r "${PERMISSIONS_HELPER}" ]; then
+    echo "${PERMISSIONS_HELPER} is missing or unreadable" >&2
+    exit 3
 fi
+source "${PERMISSIONS_HELPER}"
 
 ## Add the directory with pacman's binaries to the start of the PATH
 export PATH="${PSPDEV}/share/pacman/bin:${PATH}"
 
-## Run pacman and make sure to use the current PSPDEV
-pacman \
+## Run pacman using the current PSPDEV. Elevate only when the PSPDEV prefix
+## is not writable by the current process.
+pspdev_run_install pacman \
   --root "${PSPDEV}" \
   --dbpath "${PSPDEV}/var/lib/pacman" \
   --config "${PSPDEV}/etc/pacman.conf" \

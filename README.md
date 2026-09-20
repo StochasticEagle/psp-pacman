@@ -1,14 +1,16 @@
 # PSP Pacman
 
-This respository contains all the files needed to build and install the pacman package managed for the PSP toolchain. Pacman can be used to build and manage packages for the PSP development.
+This repository contains the PSPDEV-specific package-manager layer built on top of Pacman. It provides the PSP package database/configuration, package-build wrapper, installation wrapper, and the small set of Pacman source changes required by PSPDEV.
 
-This package provides the following commands:
-- **psp-pacman** - Allows users to install and manage PSPDEV packages.
-- **psp-makepkg** - Allows users to build packages from PSPBUILD files.
+The package installs two user-facing commands:
+
+- **psp-pacman** — installs and manages packages under the active `$PSPDEV` prefix.
+- **psp-makepkg** — builds PSP packages from `PSPBUILD` files using the active `$PSPDEV` toolchain and package metadata.
 
 ## Dependencies
 
-On Ubuntu/Debian, the following packages need to be installed:
+On Ubuntu/Debian, install:
+
 - build-essential
 - libarchive-dev
 - libarchive-tools
@@ -20,38 +22,64 @@ On Ubuntu/Debian, the following packages need to be installed:
 - ninja-build
 - wget
 
-On Arch/Manjaro, the following packages need to be installed:
+On Arch/Manjaro, install:
+
 - base-devel
 
 ## Installation
-1. Install the dependencies.
-2. Make sure the environment variable ``$PSPDEV`` is set in your shell. Use ``echo $PSPDEV`` to confirm this.
-3. Install with the following command:
-```
+
+1. Install the host dependencies.
+2. Set `$PSPDEV` to the PSPDEV installation prefix and confirm it with `echo "$PSPDEV"`.
+3. Build and install:
+
+```sh
 ./build-and-install.sh
 ```
 
-## Usage
+Build steps run with the permissions of the invoking process. Installation uses `install-permissions.sh` to test the actual PSPDEV prefix permissions. If the prefix is writable, installation proceeds without elevation; if it is not writable, only the installation command is run through `sudo`. Prefix ownership is not used as the privilege decision.
 
-Here is how to use ``psp-pacman`` and ``psp-makepkg``.
+For a completely fresh rebuild, run `./clean.sh` before `./build-and-install.sh`. Normal builds preserve the existing source and Meson build state for incremental compilation.
+
+## Usage
 
 ### Installing a package
 
-Installing a ``*.pkg.tar.gz`` package with a PSP library can be done with:
-```
+Install a PSP package with:
+
+```sh
 psp-pacman -U package-name-1.0.2.pkg.tar.gz
 ```
+
+`psp-pacman` uses the same permission helper as the installer. A writable `$PSPDEV` prefix is managed directly by the current user; a non-writable prefix elevates only the Pacman operation.
 
 ### Building a package
 
-Building a package requires a ``PSPBUILD`` script. Here is [an example](https://git.archlinux.org/pacman.git/plain/proto/PKGBUILD.proto) and [some documentation on which options are available](https://wiki.archlinux.org/index.php/PKGBUILD). Do **not** call it ``PKGBUILD``, though, use ``PSPBUILD`` instead. Also make sure to install libraries in ``$pkgdir/psp/lib`` in your build script, since this will translate to ``$PSPDEV/psp/lib`` when installing.
+Package builds use a `PSPBUILD` file rather than `PKGBUILD`:
 
-Packages can be build by running the following command in a directory with a PSPBUILD file in it:
-```
+```sh
 psp-makepkg
 ```
 
-This will create a file called something like ``package-name-1.0.2.pkg.tar.gz``. This file can be shared or installed. Installing would be done using the following command:
+`psp-makepkg` configures host `pkg-config` for PSP cross-compilation by using `$PSPDEV` as the sysroot and limiting package discovery to PSP package metadata under `$PSPDEV/psp`.
+
+Install package contents below `$pkgdir/psp` in the `PSPBUILD`; those paths become `$PSPDEV/psp` when the package is installed.
+
+## Permission tests
+
+The permission tests exercise both writable and non-writable PSPDEV prefixes, including a case where the prefix itself is writable but an existing nested installation directory is not:
+
+```sh
+./tests/test-install-permissions.sh
 ```
-psp-pacman -U package-name-1.0.2.pkg.tar.gz
-```
+
+Run the test as a non-root user so filesystem write permissions are evaluated normally. CI runs it this way on container jobs and directly on hosted runners.
+
+## Pacman source policy
+
+`components/pacman` remains a shallow submodule of upstream Pacman. During `prepare()`, the build copies that source and applies the three PSP-specific patches:
+
+- `pacman-7.1.0-psp-strip.patch`
+- `pacman-7.1.0-rootless.patch`
+- `pacman-7.1.0-add-asroot-option.patch`
+
+For now, keeping these changes as explicit patches is preferred: the PSP delta is small, reviewable, and the upstream source relationship stays obvious. A dedicated PSP Pacman source fork becomes justified if these patches grow substantially, become interdependent, require frequent rebasing because of upstream churn, or need an independent release cadence. Until then, the submodule-plus-patches model keeps the maintenance surface smaller.

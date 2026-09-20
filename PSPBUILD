@@ -1,6 +1,6 @@
 pkgname=psp-pacman
 pkgver=7.1.0
-pkgrel=2
+pkgrel=3
 pkgdesc="The package manager for the PSPDEV SDK."
 _REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 _PACMAN_SOURCE="${_REPO_ROOT}/components/pacman"
@@ -29,10 +29,12 @@ source=(
   "pacman-${pkgver}-rootless.patch"
   "pacman-${pkgver}-add-asroot-option.patch"
   "get-arch"
+  "install-permissions.sh"
   "psp-makepkg"
   "psp-pacman"
 )
 sha256sums=(
+  "SKIP"
   "SKIP"
   "SKIP"
   "SKIP"
@@ -120,6 +122,9 @@ package() {
   install -m 755 ../psp-pacman "${pkgdir}/bin/psp-pacman"
   install -m 755 ../psp-makepkg "${pkgdir}/bin/psp-makepkg"
   install -m 755 ../get-arch "${pkgdir}/share/pacman/bin/get-arch"
+
+  mkdir -m 755 -p "${pkgdir}/share/psp-pacman"
+  install -m 644 ../install-permissions.sh "${pkgdir}/share/psp-pacman/install-permissions.sh"
 
   mkdir -m 755 -p "$pkgdir/share/licenses/$pkgname"
   install -m 644 COPYING "$pkgdir/share/licenses/$pkgname"

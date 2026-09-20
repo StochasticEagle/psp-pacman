@@ -47,6 +47,7 @@ jobs:
         export PSPDEV=$PWD/pspdev
         export PATH="$PATH:$PSPDEV/bin"
         chown -R build:build .
+        sudo -u build ./tests/test-install-permissions.sh
         sudo -u build PATH="${PATH}" PSPDEV="${PSPDEV}" ./build-and-install.sh
         psp-pacman -V
 
@@ -98,6 +99,7 @@ jobs:
       run: |
         export PSPDEV=$PWD/pspdev
         export PATH="$PATH:$PSPDEV/bin"
+        ./tests/test-install-permissions.sh
         ./build-and-install.sh
         psp-pacman -V
 

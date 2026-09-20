@@ -16,15 +16,6 @@ export PACMAN=psp-pacman
 export MAKEPKG_CONF="${PSPDEV}/etc/makepkg.conf"
 export CARCH="$(${PSPDEV}/share/pacman/bin/get-arch)"
 
-## Configure host pkg-config for PSP cross-compilation.
-## Package metadata uses target paths (for example /psp/include); the sysroot
-## maps those paths into the active PSPDEV installation on the build host.
-export PKG_CONFIG=pkg-config
-export PKG_CONFIG_DIR=
-export PKG_CONFIG_PATH=
-export PKG_CONFIG_SYSROOT_DIR="${PSPDEV}"
-export PKG_CONFIG_LIBDIR="${PSPDEV}/psp/lib/pkgconfig:${PSPDEV}/psp/share/pkgconfig"
-
 ## Add the directory with pacman's binaries to the start of the PATH
 export PATH="${PSPDEV}/share/pacman/bin:${PATH}"
 
