@@ -32,5 +32,23 @@ export PKG_CONFIG_PATH=
 export PKG_CONFIG_LIBDIR="${PSPDEV}/psp/lib/pkgconfig:${PSPDEV}/psp/share/pkgconfig"
 export PKG_CONFIG_SYSROOT_DIR="${PSPDEV}"
 
+## Avoid embedding local package build paths in debug info, diagnostics, and
+## __FILE__-style strings. Prefer the explicit BUILDDIR passed by psp-packages;
+## otherwise fall back to the current working directory.
+build_root=""
+for arg in "$@"; do
+    case "$arg" in
+        BUILDDIR=*) build_root="${arg#BUILDDIR=}" ;;
+    esac
+done
+if [ -z "${build_root}" ]; then
+    build_root="$PWD"
+fi
+build_root="$(realpath -m "${build_root}")"
+pathmap_flags="-ffile-prefix-map=${build_root}=. -fdebug-prefix-map=${build_root}=. -fmacro-prefix-map=${build_root}=."
+export CPPFLAGS="${CPPFLAGS:+${CPPFLAGS} }${pathmap_flags}"
+export CFLAGS="${CFLAGS:+${CFLAGS} }${pathmap_flags}"
+export CXXFLAGS="${CXXFLAGS:+${CXXFLAGS} }${pathmap_flags}"
+
 ## Run makepkg
 makepkg "$@"
