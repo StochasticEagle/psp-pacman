@@ -2,8 +2,9 @@ pkgname=psp-pacman
 pkgver=7.1.0
 pkgrel=5
 pkgdesc="The package manager for the PSPDEV SDK."
-_REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 _PACMAN_SOURCE="${_REPO_ROOT}/components/pacman"
+_PACMAN_SOURCE_SHA="$(git -C "${_PACMAN_SOURCE}" rev-parse HEAD 2>/dev/null || true)"
 arch=(
   "alpine_x86_64"
   "ubuntu_x86_64"
@@ -44,6 +45,47 @@ sha256sums=(
   "SKIP"
   "SKIP"
 )
+
+
+pspdev_pacman_source_state() {
+  printf '%s\n' \
+    "schema=1" \
+    "repo=${_REPO_ROOT}" \
+    "source=${_PACMAN_SOURCE}" \
+    "source-sha=${_PACMAN_SOURCE_SHA}" \
+    "pkgver=${pkgver}" \
+    "pkgrel=${pkgrel}"
+}
+
+pspdev_pacman_source_state_matches() {
+  local source_tree="$1"
+  local marker="${source_tree}/.pspdev-source-state"
+
+  [[ -f "${marker}" ]] || return 1
+  [[ "$(cat "${marker}")" == "$(pspdev_pacman_source_state)" ]]
+}
+
+pspdev_pacman_meson_state() {
+  local source_dir="$1"
+  local build_dir="$2"
+
+  printf '%s\n' \
+    "schema=1" \
+    "source=${source_dir}" \
+    "build=${build_dir}" \
+    "prefix=${pkgdir}" \
+    "buildtype=release" \
+    "default-library=static" \
+    "buildscript=PSPBUILD" \
+    "root-dir=${pkgdir}" \
+    "sysconfdir=etc" \
+    "makepkg-template-dir=share/makepkg-template" \
+    "bindir=share/pacman/bin" \
+    "localstatedir=var" \
+    "doc=disabled" \
+    "i18n=false" \
+    "bash-completions-dir=share/bash-completion/completions"
+}
 
 prepare() {
   if [ ! -f "${_PACMAN_SOURCE}/meson.build" ]; then
@@ -100,10 +142,24 @@ prepare() {
 
   find ./ -type f -name "*.in" -exec sed -i -e \
     "s#@libmakepkgdir@#\${PSPDEV}/share/makepkg#g" {} \;
+
+  pspdev_pacman_source_state > .pspdev-source-state
 }
 
 build() {
   cd "pacman-v${pkgver}"
+
+  source_dir="$(pwd -P)"
+  build_dir="${source_dir}/build"
+  state_file="${build_dir}/.pspdev-meson-state"
+  expected_state="$(pspdev_pacman_meson_state "${source_dir}" "${build_dir}")"
+
+  if [[ -d "${build_dir}" ]]; then
+    if [[ ! -f "${state_file}" || "$(cat "${state_file}")" != "${expected_state}" ]]; then
+      echo "Refreshing psp-pacman Meson build tree: configuration or path changed."
+      rm -rf "${build_dir}"
+    fi
+  fi
 
   meson_args=(
     -Dprefix="${pkgdir}"
@@ -120,13 +176,14 @@ build() {
     -Dbash-completions-dir="share/bash-completion/completions"
   )
 
-  if [[ -f build/build.ninja ]]; then
-    meson setup build --reconfigure "${meson_args[@]}"
+  if [[ -f "${build_dir}/build.ninja" ]]; then
+    meson setup "${build_dir}" --reconfigure "${meson_args[@]}"
   else
-    meson setup build "${meson_args[@]}"
+    meson setup "${build_dir}" "${meson_args[@]}"
   fi
 
-  ninja -C build
+  printf '%s\n' "${expected_state}" > "${state_file}"
+  ninja -C "${build_dir}"
 }
 
 package() {

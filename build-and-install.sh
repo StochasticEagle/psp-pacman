@@ -4,7 +4,7 @@
 # Exit on errors
 set -e
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 source "${ROOT}/install-permissions.sh"
 
 ## Remove $CC and $CXX for configure
@@ -18,8 +18,8 @@ if [ -z "${PSPDEV}" ]; then
 fi
 
 ## Enter the script directory.
-cd "$(dirname "$0")"
-WORKDIR="${PWD}"
+cd "${ROOT}"
+WORKDIR="${ROOT}"
 
 # Load the package identity once so build output selection is exact. This does
 # not execute prepare/build/package; it only defines the PSPBUILD metadata and
@@ -54,7 +54,8 @@ if ! which makepkg > /dev/null; then
     CARCH="$(./get-arch)" PSPDEV="${pkgdir}" makepkg -p PSPBUILD .
 else
     makepkg_args=(-f -p PSPBUILD .)
-    if compgen -G "src/pacman-v*/build/build.ninja" > /dev/null; then
+    source_tree="src/pacman-v${pkgver}"
+    if [[ -f "${source_tree}/build/build.ninja" ]] && pspdev_pacman_source_state_matches "${source_tree}"; then
         makepkg_args=(--noextract "${makepkg_args[@]}")
     fi
     CARCH="$(./get-arch)" makepkg "${makepkg_args[@]}"
