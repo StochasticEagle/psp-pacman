@@ -83,3 +83,9 @@ Run the test as a non-root user so filesystem write permissions are evaluated no
 - `pacman-7.1.0-add-asroot-option.patch`
 
 For now, keeping these changes as explicit patches is preferred: the PSP delta is small, reviewable, and the upstream source relationship stays obvious. A dedicated PSP Pacman source fork becomes justified if these patches grow substantially, become interdependent, require frequent rebasing because of upstream churn, or need an independent release cadence. Until then, the submodule-plus-patches model keeps the maintenance surface smaller.
+
+## AI-assisted contributions and licensing
+
+This fork includes changes made with generative-AI assistance and integrated by the maintainer. To the extent the maintainer holds copyright in independently original AI-generated or AI-assisted contributions, those rights are dedicated to the public domain under [The Unlicense](https://unlicense.org/). Material that is not copyrightable requires no license.
+
+This dedication applies only to rights controlled by the maintainer. Upstream and third-party code, derivative modifications, submodules and dependencies retain their applicable original licenses and attribution requirements, even when AI assisted in modifying them. Consult the existing license files and source notices.
