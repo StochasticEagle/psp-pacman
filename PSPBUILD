@@ -1,6 +1,6 @@
 pkgname=psp-pacman
 pkgver=7.1.0
-pkgrel=5
+pkgrel=6
 pkgdesc="The package manager for the PSPDEV SDK."
 _REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 _PACMAN_SOURCE="${_REPO_ROOT}/components/pacman"
@@ -29,12 +29,16 @@ source=(
   "pacman-${pkgver}-psp-strip.patch"
   "pacman-${pkgver}-rootless.patch"
   "pacman-${pkgver}-add-asroot-option.patch"
+  "pacman-${pkgver}-binary-units.patch"
+  "pacman-${pkgver}-unit-terminology.patch"
   "get-arch"
   "install-permissions.sh"
   "psp-makepkg"
   "psp-pacman"
 )
 sha256sums=(
+  "SKIP"
+  "SKIP"
   "SKIP"
   "SKIP"
   "SKIP"
@@ -127,6 +131,8 @@ prepare() {
   apply_patch "../pacman-${pkgver}-psp-strip.patch"
   apply_patch "../pacman-${pkgver}-rootless.patch"
   apply_patch "../pacman-${pkgver}-add-asroot-option.patch"
+  apply_patch "../pacman-${pkgver}-binary-units.patch"
+  apply_patch "../pacman-${pkgver}-unit-terminology.patch"
 
   find ./ -type f -name "*.in" -exec sed -i -e \
     "s#LIBRARY=\${LIBRARY:-'@libmakepkgdir@'}#LIBRARY=\${LIBRARY:-\"\${PSPDEV}/share/makepkg\"}#g" {} \;

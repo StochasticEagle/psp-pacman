@@ -1,0 +1,82 @@
+diff --git a/src/pacman/util.c b/src/pacman/util.c
+--- a/src/pacman/util.c
++++ b/src/pacman/util.c
+@@ -1159,7 +1159,7 @@
+  * @param bytes the size in bytes
+  * @param target_unit '\0' or a short label. If equal to one of the short unit
+  * labels ('B', 'K', ...) bytes is converted to target_unit; if '\0', the first
+- * unit which will bring the value to below a threshold of 2048 will be chosen.
++ * unit which will bring the absolute value below 1024 will be chosen.
+  * @param precision number of decimal places, ensures -0.00 gets rounded to
+  * 0.00; -1 if no rounding desired
+  * @param label will be set to the appropriate unit label
+@@ -1169,8 +1169,8 @@
+ double humanize_size(off_t bytes, const char target_unit, int precision,
+ 		const char **label)
+ {
+-	static const char *labels[] = {"B", "KiB", "MiB", "GiB",
++	static const char *labels[] = {"B", "KB", "MB", "GB",
+-		"TiB", "PiB", "EiB", "ZiB", "YiB"};
++		"TB", "PB", "EB", "ZB", "YB"};
+ 	static const int unitcount = ARRAYSIZE(labels);
+ 
+ 	double val = (double)bytes;
+@@ -1179,7 +1179,7 @@
+ 	for(index = 0; index < unitcount - 1; index++) {
+ 		if(target_unit != '\0' && labels[index][0] == target_unit) {
+ 			break;
+-		} else if(target_unit == '\0' && val <= 2048.0 && val >= -2048.0) {
++		} else if(target_unit == '\0' && val < 1024.0 && val > -1024.0) {
+ 			break;
+ 		}
+ 		val /= 1024.0;
+diff --git a/src/pacman/callback.c b/src/pacman/callback.c
+--- a/src/pacman/callback.c
++++ b/src/pacman/callback.c
+@@ -865,7 +865,7 @@
+ 	xfered_human = humanize_size(bar->sync_xfered, '\0', -1, &xfered_label);
+ 
+ 	printf(" %ls%-*s ", wcfname, padwid, "");
+-	/* We will show 1.62 MiB/s, 11.6 MiB/s, but 116 KiB/s and 1116 KiB/s */
++	/* We will show 1.62 MB/s, 11.6 MB/s, but 116 KB/s and 1116 KB/s */
+ 	if(rate_human < 9.995) {
+ 		printf("%6.1f %3s  %4.2f %3s/s ",
+ 				xfered_human, xfered_label, rate_human, rate_label);
+diff --git a/test/pacman/tests/query006.py b/test/pacman/tests/query006.py
+--- a/test/pacman/tests/query006.py
++++ b/test/pacman/tests/query006.py
+@@ -20,7 +20,7 @@
+ self.addrule("PACMAN_RETCODE=0")
+ self.addrule("PACMAN_OUTPUT=^Name.*%s" % p.name)
+ self.addrule("PACMAN_OUTPUT=^Description.*%s" % p.desc)
+-self.addrule("PACMAN_OUTPUT=^Installed Size.*9.31 GiB")
++self.addrule("PACMAN_OUTPUT=^Installed Size.*9.31 GB")
+ self.addrule("PACMAN_OUTPUT=^Build Date.* 2065")
+ self.addrule("PACMAN_OUTPUT=^Install Date.* 2286")
+ 
+diff --git a/test/pacman/tests/query008.py b/test/pacman/tests/query008.py
+new file mode 100644
+--- /dev/null
++++ b/test/pacman/tests/query008.py
+@@ -0,0 +1,21 @@
++self.description = "Query installed sizes using 1024-based byte units"
++
++sizes = [
++    ("units-bytes", 1023),
++    ("units-kb", 1024),
++    ("units-mb", 1024 * 1024),
++    ("units-gb", 1024 * 1024 * 1024),
++]
++
++for name, size in sizes:
++    p = pmpkg(name)
++    p.size = str(size)
++    self.addpkg2db("local", p)
++
++self.args = "-Qi " + " ".join(name for name, _ in sizes)
++
++self.addrule("PACMAN_RETCODE=0")
++self.addrule("PACMAN_OUTPUT=^Installed Size.*1023.00 B")
++self.addrule("PACMAN_OUTPUT=^Installed Size.*1.00 KB")
++self.addrule("PACMAN_OUTPUT=^Installed Size.*1.00 MB")
++self.addrule("PACMAN_OUTPUT=^Installed Size.*1.00 GB")

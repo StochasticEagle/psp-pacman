@@ -1,0 +1,45 @@
+diff --git a/lib/libalpm/be_sync.c b/lib/libalpm/be_sync.c
+--- a/lib/libalpm/be_sync.c
++++ b/lib/libalpm/be_sync.c
+@@ -209,7 +209,7 @@
+ 		payload->unlink_on_fail = 1;
+ 		payload->download_signature = (siglevel & ALPM_SIG_DATABASE);
+ 		payload->signature_optional = (siglevel & ALPM_SIG_DATABASE_OPTIONAL);
+-		/* set hard upper limit of 128 MiB */
++		/* set hard upper limit of 128 MB */
+ 		payload->max_size = 128 * 1024 * 1024;
+ 		payloads = alpm_list_add(payloads, payload);
+ 	}
+diff --git a/lib/libalpm/diskspace.c b/lib/libalpm/diskspace.c
+--- a/lib/libalpm/diskspace.c
++++ b/lib/libalpm/diskspace.c
+@@ -60,7 +60,7 @@
+ 		alpm_handle_t *handle,
+ 		alpm_mountpoint_t *mp)
+ {
+-	/* cushion is roughly min(5% capacity, 20MiB) */
++	/* cushion is roughly min(5% capacity, 20 MB) */
+ 	fsblkcnt_t fivepc = (mp->fsp.f_blocks / 20) + 1;
+ 	fsblkcnt_t twentymb = (20 * 1024 * 1024 / mp->fsp.f_bsize) + 1;
+ 	fsblkcnt_t cushion = fivepc < twentymb ? fivepc : twentymb;
+@@ -93,7 +93,7 @@
+ 		alpm_handle_t *handle,
+ 		alpm_mountpoint_t *mp)
+ {
+-	/* cushion is roughly min(5% capacity, 20MiB) */
++	/* cushion is roughly min(5% capacity, 20 MB) */
+ 	fsblkcnt_t fivepc = (mp->fsp.f_blocks / 20) + 1;
+ 	fsblkcnt_t twentymb = (20 * 1024 * 1024 / mp->fsp.f_bsize) + 1;
+ 	fsblkcnt_t cushion = fivepc < twentymb ? fivepc : twentymb;
+diff --git a/lib/libalpm/dload.c b/lib/libalpm/dload.c
+--- a/lib/libalpm/dload.c
++++ b/lib/libalpm/dload.c
+@@ -663,7 +663,7 @@
+ 		sig->force = payload->force;
+ 		sig->unlink_on_fail = payload->unlink_on_fail;
+ 		sig->errors_ok = payload->signature_optional;
+-		/* set hard upper limit of 16KiB */
++		/* set hard upper limit of 16 KB */
+ 		sig->max_size = 16 * 1024;
+ 
+ 		curl_add_payload(handle, curlm, sig);

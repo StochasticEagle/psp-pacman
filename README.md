@@ -76,11 +76,13 @@ Run the test as a non-root user so filesystem write permissions are evaluated no
 
 ## Pacman source policy
 
-`components/pacman` remains a shallow submodule of upstream Pacman. During `prepare()`, the build copies that source and applies the three PSP-specific patches:
+`components/pacman` remains a shallow submodule of upstream Pacman. During `prepare()`, the build copies that source and applies five PSP-specific patches:
 
 - `pacman-7.1.0-psp-strip.patch`
 - `pacman-7.1.0-rootless.patch`
 - `pacman-7.1.0-add-asroot-option.patch`
+- `pacman-7.1.0-binary-units.patch` — uses 1024-based KB/MB/GB (and larger units) in displayed sizes and adds regression coverage.
+- `pacman-7.1.0-unit-terminology.patch` — updates remaining source comments to use the same units.
 
 For now, keeping these changes as explicit patches is preferred: the PSP delta is small, reviewable, and the upstream source relationship stays obvious. A dedicated PSP Pacman source fork becomes justified if these patches grow substantially, become interdependent, require frequent rebasing because of upstream churn, or need an independent release cadence. Until then, the submodule-plus-patches model keeps the maintenance surface smaller.
 
