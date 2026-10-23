@@ -13,18 +13,9 @@ diff --git a/lib/libalpm/be_sync.c b/lib/libalpm/be_sync.c
 diff --git a/lib/libalpm/diskspace.c b/lib/libalpm/diskspace.c
 --- a/lib/libalpm/diskspace.c
 +++ b/lib/libalpm/diskspace.c
-@@ -60,7 +60,7 @@
- 		alpm_handle_t *handle,
- 		alpm_mountpoint_t *mp)
- {
--	/* cushion is roughly min(5% capacity, 20MiB) */
-+	/* cushion is roughly min(5% capacity, 20 MB) */
- 	fsblkcnt_t fivepc = (mp->fsp.f_blocks / 20) + 1;
- 	fsblkcnt_t twentymb = (20 * 1024 * 1024 / mp->fsp.f_bsize) + 1;
- 	fsblkcnt_t cushion = fivepc < twentymb ? fivepc : twentymb;
-@@ -93,7 +93,7 @@
- 		alpm_handle_t *handle,
- 		alpm_mountpoint_t *mp)
+@@ -351,7 +351,7 @@
+ 
+ static int check_mountpoint(alpm_handle_t *handle, alpm_mountpoint_t *mp)
  {
 -	/* cushion is roughly min(5% capacity, 20MiB) */
 +	/* cushion is roughly min(5% capacity, 20 MB) */

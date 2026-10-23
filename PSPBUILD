@@ -1,6 +1,6 @@
 pkgname=psp-pacman
 pkgver=7.1.0
-pkgrel=6
+pkgrel=7
 pkgdesc="The package manager for the PSPDEV SDK."
 _REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 _PACMAN_SOURCE="${_REPO_ROOT}/components/pacman"
